@@ -1,38 +1,20 @@
+require('dotenv').config();
 const express = require('express');
-const multer = require('multer');
+
+const healthRoutes = require('./presentation/healthRoutes');
+const uploadRoutes = require('./presentation/uploadRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-const upload = multer({ dest: 'uploads/' });
-
-// Parse incoming JSON request bodies automatically
 app.use(express.json());
 
-// Simple health-check route.
-// Purpose: lets us (and later, monitoring tools / Docker) confirm the server is alive.
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    service: 'thoughtflow-ops-backend',
-    timestamp: new Date().toISOString(),
-  });
-});
+// Mount route groups.
+// Health check lives at the root (no /api prefix — convention for infra checks).
+app.use('/', healthRoutes);
 
-// File upload route.
-// Purpose: accepts a single Excel/CSV file sent under the field name 'file'.
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file was uploaded.' });
-  }
-
-  res.status(200).json({
-    message: 'File received successfully.',
-    originalName: req.file.originalname,
-    savedAs: req.file.filename,
-    sizeInBytes: req.file.size,
-  });
-});
+// All business-facing endpoints live under /api.
+app.use('/api', uploadRoutes);
 
 app.listen(PORT, () => {
   console.log(`ThoughtFlow Ops backend listening on http://localhost:${PORT}`);
