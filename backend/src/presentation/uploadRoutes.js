@@ -2,11 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const { parseExcelFile } = require('../infrastructure/excelParser');
 const { saveParsedFile } = require('../application/saveParsedFile');
+const authenticateJWT = require('../infrastructure/authenticateJWT');
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file was uploaded.' });
   }
@@ -27,6 +28,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       savedAs: req.file.filename,
       sizeInBytes: req.file.size,
       rows,
+      uploadedById: req.user.userId,
     });
 
     res.status(201).json({
