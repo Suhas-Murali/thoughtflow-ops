@@ -39,22 +39,21 @@ router.post(
         uploadedById: req.user.userId,
       });
 
-      // Send saved failures to the AI service for categorization
-      const analysisResults = await analyzeFailures(savedFile.failures);
-
-      // Update each failure in the database with its real AI analysis
-      await Promise.all(
-        analysisResults.map((result) =>
-          prisma.parsedFailure.update({
-            where: { id: result.id },
-            data: {
-              category: result.category,
-              severity: result.severity,
-              cleanSummary: result.cleanSummary,
-            },
-          })
-        )
-      );
+      // Send saved failures to the AI service in batches, saving progressively
+      const analysisResults = await analyzeFailures(savedFile.failures, async (batchResults) => {
+        await Promise.all(
+          batchResults.map((result) =>
+            prisma.parsedFailure.update({
+              where: { id: result.id },
+              data: {
+                category: result.category,
+                severity: result.severity,
+                cleanSummary: result.cleanSummary,
+              },
+            })
+          )
+        );
+      });
 
       res.status(201).json({
         message: 'File parsed, saved, and analyzed successfully.',
