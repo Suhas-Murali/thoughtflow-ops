@@ -1,6 +1,6 @@
 import ollama
 
-CATEGORIES = ["DATABASE_TIMEOUT", "UI_FLAKINESS", "AUTH_FAILURE", "NETWORK_ERROR", "UNKNOWN"]
+CATEGORIES = ["DATABASE_ERROR", "UI_FLAKINESS", "AUTH_FAILURE", "NETWORK_ERROR", "UNKNOWN"]
 SEVERITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
 
 def build_prompt(error_log: str) -> str:
@@ -29,7 +29,7 @@ The JSON object must have exactly these three fields:
 - "cleanSummary": a single plain-English sentence (max 20 words) explaining what went wrong
 
 Category definitions:
-- DATABASE_TIMEOUT: database connections, queries, pooling, or transaction failures
+- DATABASE_ERROR: database connections, queries, pooling, or transaction failures
 - UI_FLAKINESS: frontend rendering, element timeouts, browser automation issues
 - AUTH_FAILURE: login, token, session, or permission-related failures specifically
 - NETWORK_ERROR: connectivity issues to external services, APIs, or messaging systems (not the database itself)
