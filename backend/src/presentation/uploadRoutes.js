@@ -2,8 +2,10 @@ const express = require('express');
 const multer = require('multer');
 const { parseExcelFile } = require('../infrastructure/excelParser');
 const { saveParsedFile } = require('../application/saveParsedFile');
+const { analyzeFailures } = require('../application/analyzeFailures');
 const authenticateJWT = require('../infrastructure/authenticateJWT');
 const requireRole = require('../infrastructure/requireRole');
+const prisma = require('../infrastructure/prismaClient');
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -37,16 +39,33 @@ router.post(
         uploadedById: req.user.userId,
       });
 
+      // Send saved failures to the AI service for categorization
+      const analysisResults = await analyzeFailures(savedFile.failures);
+
+      // Update each failure in the database with its real AI analysis
+      await Promise.all(
+        analysisResults.map((result) =>
+          prisma.parsedFailure.update({
+            where: { id: result.id },
+            data: {
+              category: result.category,
+              severity: result.severity,
+              cleanSummary: result.cleanSummary,
+            },
+          })
+        )
+      );
+
       res.status(201).json({
-        message: 'File parsed and saved successfully.',
+        message: 'File parsed, saved, and analyzed successfully.',
         uploadedFileId: savedFile.id,
         originalName: savedFile.originalName,
         rowCount: savedFile.failures.length,
-        failures: savedFile.failures,
+        failures: analysisResults,
       });
     } catch (err) {
       res.status(500).json({
-        error: 'Failed to save parsed data to the database.',
+        error: 'Failed to save or analyze parsed data.',
         details: err.message,
       });
     }
