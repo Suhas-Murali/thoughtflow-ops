@@ -72,6 +72,16 @@ JSON response:"""
 
 
 def analyze_error(error_log: str) -> dict:
+    # Guard against empty, whitespace-only, or trivially short input.
+    # Don't waste an AI call on data that has no real diagnostic content,
+    # and don't let the model hallucinate a confident-sounding fake diagnosis.
+    if not error_log or len(error_log.strip()) < 5:
+        return {
+            "category": "UNKNOWN",
+            "severity": "LOW",
+            "cleanSummary": "No usable error log content was provided for this row.",
+        }
+
     prompt = build_prompt(error_log)
     response = ollama.generate(model="llama3.2", prompt=prompt)
     raw_text = response["response"].strip()
