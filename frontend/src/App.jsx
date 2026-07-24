@@ -1,14 +1,24 @@
-import { useAuth } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const { isAuthenticated, user } = useAuth();
-
   return (
-    <div>
-      <h1>ThoughtFlow Ops</h1>
-      <p>Logged in: {isAuthenticated ? 'Yes' : 'No'}</p>
-      {user && <p>Welcome, {user.email} ({user.role})</p>}
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
