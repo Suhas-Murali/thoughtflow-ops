@@ -31,4 +31,9 @@ export async function uploadFile(file, onProgress) {
   return response.data;
 }
 
+export async function getDashboardStats() {
+  const response = await api.get('/stats');
+  return response.data;
+}
+
 export default api;

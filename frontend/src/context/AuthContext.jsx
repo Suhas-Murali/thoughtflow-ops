@@ -3,9 +3,21 @@ import api from '../services/api';
 
 const AuthContext = createContext(null);
 
+function decodeToken(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return { email: payload.email, role: payload.role, userId: payload.userId };
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const existingToken = localStorage.getItem('token');
+    return existingToken ? decodeToken(existingToken) : null;
+  });
 
   const login = async (email, password) => {
     const response = await api.post('/login', { email, password });
@@ -13,10 +25,7 @@ export function AuthProvider({ children }) {
 
     localStorage.setItem('token', newToken);
     setToken(newToken);
-
-    // Decode the token payload to get basic user info (email, role)
-    const payload = JSON.parse(atob(newToken.split('.')[1]));
-    setUser({ email: payload.email, role: payload.role, userId: payload.userId });
+    setUser(decodeToken(newToken));
 
     return response.data;
   };
