@@ -5,15 +5,16 @@
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {
-  "start": "node src/server.js",
-  "dev": "node --watch src/server.js",
-  "test": "jest"
-},
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "jest"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",

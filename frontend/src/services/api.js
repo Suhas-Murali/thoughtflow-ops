@@ -6,7 +6,6 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// Automatically attach the auth token to every request, if one exists.
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -14,5 +13,22 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+export async function uploadFile(file, onProgress) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post('/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    onUploadProgress: (progressEvent) => {
+      if (onProgress && progressEvent.total) {
+        const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        onProgress(percent);
+      }
+    },
+  });
+
+  return response.data;
+}
 
 export default api;
