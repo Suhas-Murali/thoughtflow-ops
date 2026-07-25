@@ -30,7 +30,10 @@ export async function uploadFile(file, onProgress) {
 
   return response.data;
 }
-
+export async function getFailures(params) {
+  const response = await api.get('/failures', { params });
+  return response.data.failures;
+}
 export async function getDashboardStats() {
   const response = await api.get('/stats');
   return response.data;

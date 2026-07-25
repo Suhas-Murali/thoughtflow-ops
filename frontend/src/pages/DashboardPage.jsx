@@ -5,6 +5,7 @@ import { getDashboardStats } from '../services/api';
 import FileUploader from '../components/FileUploader';
 import StatCard from '../components/StatCard';
 import FailureCharts from '../components/FailureCharts';
+import FailureTable from '../components/FailureTable';
 
 function DashboardPage() {
   const { user, logout } = useAuth();
@@ -47,6 +48,8 @@ function DashboardPage() {
           <FailureCharts byCategory={stats.byCategory} bySeverity={stats.bySeverity} />
         </>
       )}
+
+      <FailureTable />
 
       <h2 style={{ marginTop: '32px' }}>Upload a Test Failure Report</h2>
       <FileUploader />
