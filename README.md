@@ -1,37 +1,79 @@
-## Prerequisites
-- Node.js
-- PostgreSQL
-- Python 3.11+
-- [Ollama](https://ollama.com) with the `llama3.2` model pulled (`ollama pull llama3.2`)
-
 # ThoughtFlow Ops
 
-An intelligent pipeline that ingests QA test-failure spreadsheets (Excel/CSV),
-uses a local LLM to auto-categorize and summarize failures, and surfaces them
-on a live triage dashboard.
+An AI-powered pipeline that ingests QA test-failure spreadsheets (Excel/CSV),
+uses a locally-run LLM (Ollama) to automatically categorize and summarize each
+failure, and surfaces the results on a searchable, filterable operations
+dashboard — with zero cloud API costs and zero data leaving your machine.
 
-## Branching Strategy (Day 1)
+## Architecture
 
-- `main` — always production-ready. Nothing is committed here directly.
-- `develop` — integration branch. All feature branches merge here first.
-- `feature/<name>` — one branch per day/task, e.g. `feature/day02-docker-db`.
+![Architecture diagram](docs/architecture.svg)
 
-Rule: no direct commits to `main`. Work happens in `feature/*` branches,
-gets merged into `develop`, and only tested, stable code is promoted to `main`.
+The system is three independent services:
 
-## Commit Convention
+- **React frontend** (Vite, port 5173) — login, upload, and dashboard UI
+- **Node backend** (Express, port 4000) — auth, file parsing, database access, orchestrates AI analysis
+- **Python AI service** (FastAPI, port 8000) — runs prompts against a local Ollama model
 
-We use [Conventional Commits](https://www.conventionalcommits.org/):
-- `feat(scope): ...` — new feature
-- `fix(scope): ...` — bug fix
-- `chore(scope): ...` — tooling/setup, no production code change
-- `docs(scope): ...` — documentation only
-- `test(scope): ...` — adding/adjusting tests
+## Features
 
-## Progress Log
+- JWT authentication with role-based access control (QA_LEAD / ADMIN / VIEWER)
+- Drag-and-drop Excel/CSV upload with live progress tracking
+- Automatic AI categorization of failures (category, severity, plain-English summary)
+- Batched, incremental processing so large files don't overload memory
+- Validation guards against empty/malformed rows and AI hallucination on blank input
+- Searchable, filterable, sortable failure log
+- Live dashboard with metric cards and charts (category/severity breakdowns)
+- Zod schema validation on all write endpoints
+- Indexed database queries for fast filtering at scale
+- Automated test suite (unit + integration, 18+ tests)
 
-- **Day 1**: Git repo initialized (`main` + `develop` branches). Express
-  backend scaffolded with a working `/health` endpoint.
-- **Day 10** (Handbook 1): Installed Ollama locally and pulled `llama3.2` (3B) as
-  the local LLM for AI-based failure categorization. Verified via interactive
-  test that the model can classify a sample error log into a given category.
+## Prerequisites
+
+- Node.js (v18+)
+- Python 3.11+
+- PostgreSQL (v16+)
+- [Ollama](https://ollama.com), with the `llama3.2` model pulled: `ollama pull llama3.2`
+
+## Setup
+
+### 1. Database
+```bash
+psql -U postgres -c "CREATE DATABASE thoughtflow_ops;"
+```
+
+### 2. Backend
+```bash
+cd backend
+npm install
+# Create a .env file with DATABASE_URL, JWT_SECRET, PORT, AI_SERVICE_URL
+npx prisma migrate dev
+npm run dev
+```
+
+### 3. AI service
+```bash
+cd ai-service
+python -m venv venv
+.\venv\Scripts\Activate.ps1     # Windows
+pip install -r requirements.txt # or: pip install fastapi uvicorn ollama
+uvicorn main:app --reload --port 8000
+```
+
+### 4. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Visit `http://localhost:5173`.
+
+## Running Tests
+
+```bash
+cd backend
+npm test
+```
+
+## Project Structure
