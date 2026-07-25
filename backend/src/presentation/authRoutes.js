@@ -3,15 +3,13 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const prisma = require('../infrastructure/prismaClient');
 const { registerUser } = require('../application/registerUser');
+const validateBody = require('../infrastructure/validateBody');
+const { registerSchema, loginSchema } = require('../domain/validationSchemas');
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', validateBody(registerSchema), async (req, res) => {
   const { email, password, role } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
-  }
 
   try {
     const user = await registerUser({ email, password, role });
@@ -21,12 +19,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', validateBody(loginSchema), async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required.' });
-  }
 
   const user = await prisma.systemUser.findUnique({ where: { email } });
   if (!user) {
