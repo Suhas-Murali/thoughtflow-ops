@@ -46,4 +46,7 @@ model ParsedFailure {
 
   sourceFile   UploadedFile @relation(fields: [sourceFileId], references: [id])
   sourceFileId String
+  @@index([category])
+  @@index([severity])
+  @@index([createdAt])
 }
